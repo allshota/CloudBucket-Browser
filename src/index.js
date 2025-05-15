@@ -96,7 +96,10 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="file-actions">
           ${isDirectory 
             ? '<button class="enter-btn">进入</button>' 
-            : '<button class="download-btn">下载</button>'}
+            : `
+              <button class="download-btn">下载</button>
+              <button class="copy-link-btn" title="复制下载地址"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+              `}
         </div>
       `;
 
@@ -125,6 +128,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const downloadBtn = fileItem.querySelector('.download-btn');
         downloadBtn.addEventListener('click', () => {
           downloadFile(key);
+        });
+        
+        // 添加复制下载地址功能
+        const copyLinkBtn = fileItem.querySelector('.copy-link-btn');
+        copyLinkBtn.addEventListener('click', () => {
+          copyDownloadLink(key);
         });
       }
 
@@ -194,6 +203,55 @@ document.addEventListener('DOMContentLoaded', () => {
   // 下载单个文件
   function downloadFile(key) {
     window.location.href = `/api/download?key=${encodeURIComponent(key)}`;
+  }
+  
+  // 复制下载链接
+  function copyDownloadLink(key) {
+    const downloadUrl = new URL(`/api/download?key=${encodeURIComponent(key)}`, window.location.origin).href;
+    
+    navigator.clipboard.writeText(downloadUrl)
+      .then(() => {
+        showToast('下载链接已复制到剪贴板');
+      })
+      .catch(err => {
+        console.error('复制链接失败:', err);
+        // 降级方案：创建一个临时输入框来复制
+        const tempInput = document.createElement('input');
+        tempInput.value = downloadUrl;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showToast('下载链接已复制到剪贴板');
+      });
+  }
+  
+  // 显示Toast提示
+  function showToast(message) {
+    // 移除现有的toast
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) {
+      document.body.removeChild(existingToast);
+    }
+    
+    // 创建新toast
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // 添加显示类以触发动画
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    // 设置自动消失
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => {
+        if (document.body.contains(toast)) {
+          document.body.removeChild(toast);
+        }
+      }, 300);
+    }, 3000);
   }
 
   // 更新按钮状态
