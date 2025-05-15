@@ -1,0 +1,138 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f5f5f5;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h1 {
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10px;
+  margin-bottom: 20px;
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.breadcrumb-item {
+  cursor: pointer;
+  color: #3498db;
+}
+
+.breadcrumb-item:not(:last-child)::after {
+  content: "/";
+  margin: 0 8px;
+  color: #999;
+}
+
+.breadcrumb-item:last-child {
+  color: #666;
+  cursor: default;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+button {
+  padding: 8px 16px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #2980b9;
+}
+
+button:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+}
+
+.file-list {
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.2s;
+}
+
+.file-item:last-child {
+  border-bottom: none;
+}
+
+.file-item:hover {
+  background-color: #f9f9f9;
+}
+
+.file-checkbox {
+  margin-right: 15px;
+}
+
+.file-icon {
+  margin-right: 10px;
+  font-size: 20px;
+  color: #7f8c8d;
+}
+
+.file-icon.folder {
+  color: #f39c12;
+}
+
+.file-icon.file {
+  color: #3498db;
+}
+
+.file-name {
+  flex-grow: 1;
+  font-size: 15px;
+}
+
+.file-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.loading {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+}
+
+.empty {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+} 

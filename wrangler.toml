@@ -1,0 +1,14 @@
+[site]
+bucket = "./public"
+
+[build]
+command = "npm run build"
+publish = "./public"
+
+[env.production]
+R2_BUCKET_NAME = "你的存储桶名称"
+
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "${R2_BUCKET_NAME}"
+preview_bucket_name = "${R2_BUCKET_NAME}" 

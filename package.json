@@ -1,0 +1,20 @@
+{
+  "name": "cloudflare-r2-browser",
+  "version": "1.0.0",
+  "description": "Cloudflare Pages应用，用于浏览R2存储桶文件",
+  "main": "index.js",
+  "scripts": {
+    "dev": "wrangler pages dev --local",
+    "build": "webpack --mode production",
+    "deploy": "wrangler pages publish public"
+  },
+  "dependencies": {
+    "@cloudflare/workers-types": "^4.20230904.0"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^11.0.0",
+    "html-webpack-plugin": "^5.5.0",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  }
+} 
