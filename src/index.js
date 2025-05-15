@@ -89,19 +89,26 @@ document.addEventListener('DOMContentLoaded', () => {
       const icon = isDirectory ? '📁' : '📄';
       const key = path ? `${path}/${item.name}` : item.name;
 
-      fileItem.innerHTML = `
-        <input type="checkbox" class="file-checkbox" data-key="${key}" ${isDirectory ? 'disabled' : ''}>
-        <div class="file-icon ${isDirectory ? 'folder' : 'file'}">${icon}</div>
-        <div class="file-name">${item.name}</div>
-        <div class="file-actions">
-          ${isDirectory 
-            ? '<button class="enter-btn">进入</button>' 
-            : `
-              <button class="download-btn">下载</button>
-              <button class="copy-link-btn" title="复制下载地址"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-              `}
-        </div>
-      `;
+      if (isDirectory) {
+        fileItem.innerHTML = `
+          <input type="checkbox" class="file-checkbox" data-key="${key}" disabled>
+          <div class="file-icon folder">${icon}</div>
+          <div class="file-name">${item.name}</div>
+          <div class="file-actions">
+            <button class="enter-btn">进入</button>
+          </div>
+        `;
+      } else {
+        fileItem.innerHTML = `
+          <input type="checkbox" class="file-checkbox" data-key="${key}">
+          <div class="file-icon file">${icon}</div>
+          <div class="file-name">${item.name}</div>
+          <div class="file-actions">
+            <button class="download-btn">下载</button>
+            <button class="copy-link-btn" title="复制下载地址">复制链接</button>
+          </div>
+        `;
+      }
 
       const checkbox = fileItem.querySelector('.file-checkbox');
       checkbox.addEventListener('change', (e) => {
@@ -209,49 +216,62 @@ document.addEventListener('DOMContentLoaded', () => {
   function copyDownloadLink(key) {
     const downloadUrl = new URL(`/api/download?key=${encodeURIComponent(key)}`, window.location.origin).href;
     
-    navigator.clipboard.writeText(downloadUrl)
-      .then(() => {
-        showToast('下载链接已复制到剪贴板');
-      })
-      .catch(err => {
-        console.error('复制链接失败:', err);
-        // 降级方案：创建一个临时输入框来复制
-        const tempInput = document.createElement('input');
-        tempInput.value = downloadUrl;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand('copy');
-        document.body.removeChild(tempInput);
-        showToast('下载链接已复制到剪贴板');
-      });
-  }
-  
-  // 显示Toast提示
-  function showToast(message) {
-    // 移除现有的toast
-    const existingToast = document.querySelector('.toast');
-    if (existingToast) {
-      document.body.removeChild(existingToast);
-    }
-    
-    // 创建新toast
+    // 创建一个临时的toast元素，用于显示提示信息
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.textContent = message;
+    toast.textContent = '正在复制链接...';
     document.body.appendChild(toast);
     
-    // 添加显示类以触发动画
-    setTimeout(() => toast.classList.add('show'), 10);
+    // 使用Clipboard API复制文本
+    try {
+      navigator.clipboard.writeText(downloadUrl)
+        .then(() => {
+          toast.textContent = '下载链接已复制到剪贴板';
+          toast.classList.add('show');
+          
+          setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => document.body.removeChild(toast), 300);
+          }, 3000);
+        })
+        .catch(err => {
+          console.error('复制失败:', err);
+          fallbackCopy();
+        });
+    } catch (e) {
+      console.error('Clipboard API不可用:', e);
+      fallbackCopy();
+    }
     
-    // 设置自动消失
-    setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => {
-        if (document.body.contains(toast)) {
-          document.body.removeChild(toast);
+    // 降级复制方法
+    function fallbackCopy() {
+      const textarea = document.createElement('textarea');
+      textarea.value = downloadUrl;
+      textarea.style.position = 'fixed';  // 防止滚动到底部
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          toast.textContent = '下载链接已复制到剪贴板';
+        } else {
+          toast.textContent = '复制失败，请手动复制：' + downloadUrl;
         }
-      }, 300);
-    }, 3000);
+      } catch (err) {
+        toast.textContent = '复制失败，请手动复制：' + downloadUrl;
+        console.error('复制失败:', err);
+      }
+      
+      document.body.removeChild(textarea);
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => document.body.removeChild(toast), 300);
+      }, 3000);
+    }
   }
 
   // 更新按钮状态
