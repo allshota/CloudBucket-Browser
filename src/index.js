@@ -27,14 +27,24 @@ document.addEventListener('DOMContentLoaded', () => {
       const response = await fetch(`/api/list?prefix=${encodeURIComponent(path)}`);
       
       if (!response.ok) {
-        throw new Error(`请求失败: ${response.status}`);
+        const errorData = await response.json().catch(() => ({ 
+          error: `HTTP错误: ${response.status}`, 
+          details: '无法获取详细错误信息' 
+        }));
+        
+        throw new Error(`请求失败: ${errorData.error}\n${errorData.details || ''}`);
       }
       
       const data = await response.json();
       updateBreadcrumb(path);
       renderFileList(data, path);
     } catch (error) {
-      fileList.innerHTML = `<div class="error">加载失败: ${error.message}</div>`;
+      fileList.innerHTML = `
+        <div class="error">
+          <h3>加载失败</h3>
+          <p>${error.message}</p>
+          <button onclick="location.reload()">重试</button>
+        </div>`;
       console.error('加载文件列表失败:', error);
     }
   }

@@ -20,10 +20,16 @@ export async function onRequest(context) {
     const prefix = url.searchParams.get('prefix') || '';
     const delimiter = '/';
 
-    // 获取R2存储桶引用
-    const bucket = env.R2_BUCKET;
-    if (!bucket) {
-      throw new Error('存储桶未配置');
+    // 检查是否存在R2存储桶绑定
+    if (!env.R2_BUCKET) {
+      console.error('R2_BUCKET绑定未找到，请检查Cloudflare Pages的绑定设置');
+      return new Response(
+        JSON.stringify({ 
+          error: 'R2存储桶未配置',
+          details: '请确保在Cloudflare Pages的设置中正确绑定了R2存储桶' 
+        }),
+        { headers, status: 500 }
+      );
     }
 
     // 列出对象
@@ -32,42 +38,60 @@ export async function onRequest(context) {
       delimiter
     };
 
-    const objects = await bucket.list(options);
-    
-    // 构建响应数据
-    const result = [];
-
-    // 添加目录（在R2中是以前缀表示的）
-    for (const prefix of objects.delimitedPrefixes) {
-      const name = prefix.replace(options.prefix, '').replace('/', '');
-      result.push({
-        name,
-        isDirectory: true
-      });
-    }
-
-    // 添加文件
-    for (const object of objects.objects) {
-      // 跳过表示目录本身的空对象
-      if (object.key.endsWith('/')) continue;
+    try {
+      const objects = await env.R2_BUCKET.list(options);
       
-      const name = object.key.replace(options.prefix, '');
-      // 跳过嵌套目录中的文件
-      if (name.includes('/')) continue;
-      
-      result.push({
-        name,
-        isDirectory: false,
-        size: object.size,
-        uploadedAt: object.uploaded
-      });
-    }
+      // 构建响应数据
+      const result = [];
 
-    return new Response(JSON.stringify(result), { headers });
+      // 添加目录（在R2中是以前缀表示的）
+      if (objects.delimitedPrefixes) {
+        for (const prefix of objects.delimitedPrefixes) {
+          const name = prefix.replace(options.prefix, '').replace('/', '');
+          result.push({
+            name,
+            isDirectory: true
+          });
+        }
+      }
+
+      // 添加文件
+      if (objects.objects) {
+        for (const object of objects.objects) {
+          // 跳过表示目录本身的空对象
+          if (object.key.endsWith('/')) continue;
+          
+          const name = object.key.replace(options.prefix, '');
+          // 跳过嵌套目录中的文件
+          if (name.includes('/')) continue;
+          
+          result.push({
+            name,
+            isDirectory: false,
+            size: object.size,
+            uploadedAt: object.uploaded
+          });
+        }
+      }
+
+      return new Response(JSON.stringify(result), { headers });
+    } catch (bucketError) {
+      console.error('访问R2存储桶时出错:', bucketError);
+      return new Response(
+        JSON.stringify({ 
+          error: '存储桶访问错误', 
+          details: bucketError.message || '无法访问R2存储桶'
+        }),
+        { headers, status: 500 }
+      );
+    }
   } catch (error) {
     console.error('列表R2对象时出错:', error);
     return new Response(
-      JSON.stringify({ error: error.message || '处理请求时出错' }),
+      JSON.stringify({ 
+        error: '服务器内部错误', 
+        details: error.message || '处理请求时出错' 
+      }),
       { headers, status: 500 }
     );
   }
