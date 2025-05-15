@@ -5,6 +5,9 @@ bucket = "./public"
 command = "npm run build"
 publish = "./public"
 
+# 添加Pages构建输出目录
+pages_build_output_dir = "public"
+
 [env.production]
 R2_BUCKET_NAME = "你的存储桶名称"
 

@@ -35,8 +35,8 @@ CloudVault-Navigator 是一个简洁易用的 Cloudflare R2 存储桶浏览器�
 
 1. 克隆仓库
    ```bash
-   git clone https://github.com/allshota/CloudBucket-Browser.git
-   cd CloudBucket-Browser
+   git clone https://github.com/YourUsername/CloudVault-Navigator.git
+   cd CloudVault-Navigator
    ```
 
 2. 安装依赖
